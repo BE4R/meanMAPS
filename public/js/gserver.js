@@ -21,8 +21,7 @@ angular.module('gservice', [])
     // Functions
     // --------------------------------------------------------------
     // Refresh the Map with new data. Function will take new latitude and longitude coordinates.
-    googleMapService.refresh = function (latitude, longitude) {
-
+    googleMapService.refresh = function (latitude, longitude, filteredResults) {
       // Clears the holding array of locations
       locations = [];
 
@@ -30,15 +29,29 @@ angular.module('gservice', [])
       selectedLat = latitude;
       selectedLong = longitude;
 
-      // Perform an AJAX call to get all of the records in the db.
-      $http.get('/users').success(function (response) {
+      // If filtered results are provided in the refresh() call...
+      if (filteredResults) {
 
-        // Convert the results into Google Map Format
-        locations = convertToMapPoints(response);
+        // Then convert the filtered results into map points.
+        locations = convertToMapPoints(filteredResults);
 
-        // Then initialize the map.
-        initialize(latitude, longitude);
-      }).error(function () {});
+        // Then, initialize the map -- noting that a filter was used (to mark icons yellow)
+        initialize(latitude, longitude, true);
+      }
+
+      // If no filter is provided in the refresh() call...
+      else {
+
+        // Perform an AJAX call to get all of the records in the db.
+        $http.get('/users').success(function (response) {
+
+          // Then convert the results into map points
+          locations = convertToMapPoints(response);
+
+          // Then initialize the map -- noting that no filter was used.
+          initialize(latitude, longitude, false);
+        }).error(function () {});
+      }
     };
 
     // Private Inner Functions
@@ -79,7 +92,7 @@ angular.module('gservice', [])
     };
 
     // Initializes the map
-    var initialize = function (latitude, longitude) {
+    var initialize = function (latitude, longitude, filter) {
 
       // Uses the selected lat, long as starting point
       var myLatLng = {
@@ -96,13 +109,20 @@ angular.module('gservice', [])
         });
       }
 
+      // If a filter was used set the icons yellow, otherwise blue
+      if (filter) {
+        icon = "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+      } else {
+        icon = "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+      }
+
       // Loop through each location in the array and place a marker
       locations.forEach(function (n) {
         var marker = new google.maps.Marker({
           position: n.latlon,
           map: map,
           title: "Big Map",
-          icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          icon: icon,
         });
 
         // For each marker created, add a listener that checks for clicks

@@ -72,6 +72,12 @@
     <!-- Footer panel for displaying count. Note how it will only display if queryCount is greater than 0 -->
     <div ng-show="queryCount>0" class="panel-footer">
       <p class="text-center">Hot Dang! We Found {{queryCount}} Teammates.</p>
+      <ul ng-repeat="result in results">
+        <li >username: {{result.username}}</li>
+        <ul>
+          <li>location: {{result.location}}</li>
+        </ul>
+      </ul>
     </div>
   </div>
 </div>
